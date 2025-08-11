@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calibration Monitoring System - AOI & SPI</title>
+<style>
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f7f9fc;
+  }
+  #loginPage, #dashboard {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Login page styles */
+  #loginPage {
+    justify-content: center;
+    align-items: center;
+    background: #0052cc;
+    color: white;
+  }
+  #loginForm {
+    background: white;
+    color: #333;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 320px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  }
+  #loginForm h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: #0052cc;
+  }
+  #loginForm label {
+    font-weight: 600;
+    margin-top: 1rem;
+    display: block;
+  }
+  #loginForm input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    margin-top: 0.25rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+  #loginForm button {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    background: #0052cc;
+    border: none;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  #loginForm button:hover {
+    background: #003d99;
+  }
+  #loginMessage {
+    margin-top: 1rem;
+    font-weight: 600;
+    color: #d9534f;
+    text-align: center;
+  }
+
+  /* Dashboard styles */
+  #dashboard {
+    display: none;
+    height: 100vh;
+  }
+  header {
+    background-color: #0052cc;
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+    user-select: none;
+  }
+  #menuToggleBtn {
+    background: #0052cc;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 0 0 6px 6px;
+    width: 180px;
+    align-self: flex-start;
+    margin-left: 1rem;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  #menuToggleBtn:hover {
+    background: #003d99;
+  }
+  main {
+    flex: 1;
+    display: flex;
+    max-width: 1200px;
+    margin: 1rem auto 2rem;
+    width: 100%;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    min-height: 600px;
+    transition: all 0.3s ease;
+  }
+  nav {
+    width: 180px;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    background: #f0f4ff;
+    transition: width 0.3s ease, transform 0.3s ease;
+    position: relative;
+  }
+  nav.hidden {
+    width: 0;
+    overflow: hidden;
+    transform: translateX(-100%);
+  }
+  nav button, nav .nav-btn {
+    background: none;
+    border: none;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #0052cc;
+    border-left: 4px solid transparent;
+    transition: background-color 0.3s, border-left-color 0.3s;
+  }
+  nav button.active {
+    background-color: #dbe4ff;
+    border-left-color: #0052cc;
+    font-weight: 700;
+  }
+  nav .nav-btn.logout-btn {
+    margin-top: auto;
+    color: #d9534f;
+    border-left-color: transparent;
+    font-weight: 700;
+  }
+  nav .nav-btn.logout-btn:hover {
+    background-color: #f9d6d5;
+    color: #b33034;
+  }
+  section.content {
+    flex: 1;
+    padding: 1.5rem 2rem;
+    overflow-y: auto;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+  }
+  main.nav-hidden section.content {
+    margin-left: 0;
+    width: 100%;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 1rem;
+    box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  }
+  th, td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+  }
+  th {
+    background-color: #0052cc;
+    color: white;
+    user-select: none;
+  }
+  tr:hover {
+    background-color: #e6f0ff;
+  }
+  button {
+    background-color: #0052cc;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.25s ease;
+  }
+  button:hover {
+    background-color: #003d99;
+  }
+  button.small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    margin-left: 0.5rem;
+  }
+  button.delete-btn {
+    background-color: #d9534f;
+  }
+  button.delete-btn:hover {
+    background-color: #b33034;
+  }
+  .status-passed {
+    color: green;
+    font-weight: 700;
+  }
+  .status-failed {
+    color: red;
+    font-weight: 700;
+  }
+  .status-overdue {
+    color: orange;
+    font-weight: 700;
+  }
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    animation: fadeIn 0.3s ease forwards;
+  }
+  .modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 1.5rem 2rem;
+    border-radius: 6px;
+    box-shadow: 0 0 20px rgb(0 0 0 / 0.1);
+    max-width: 600px;
+    position: relative;
+    animation: slideDown 0.3s ease forwards;
+  }
+  .modal-header {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  .close-btn {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #999;
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+  .close-btn:hover {
+    color: #555;
+  }
+  form label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: 600;
+  }
+  form input, form select, form textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    margin-top: 0.25rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    transition: border-color 0.25s ease;
+  }
+  form textarea {
+    resize: vertical;
+  }
+  form input:invalid, form select:invalid, form textarea:invalid {
+    border-color: #d9534f;
+  }
+  form input:focus, form select:focus, form textarea:focus {
+    border-color: #0052cc;
+    outline: none;
+  }
+  form button {
+    margin-top: 1.5rem;
+  }
+  .sub-tabs {
+    display: flex;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ddd;
+  }
+  .sub-tabs button {
+    background: none;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    border-bottom: 3px solid transparent;
+    color: #0052cc;
+    margin-right: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  .sub-tabs button.active {
+    border-color: #0052cc;
+    font-weight: 700;
+  }
+  .sub-tab-content {
+    display: none;
+  }
+  .sub-tab-content.active {
+    display: block;
+  }
+  #machineHistoryDisplay {
+    margin-top: 1rem;
+    background: #f0f4ff;
+    padding: 1rem;
+    border-radius: 6px;
+    min-height: 150px;
+    box-shadow: inset 0 0 5px rgb(0 0 0 / 0.05);
+  }
+  .login-form {
+    max-width: 400px;
+  }
+  @keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+  }
+  @keyframes slideDown {
+    from {transform: translateY(-20px); opacity: 0;}
+    to {transform: translateY(0); opacity: 1;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" role="main" aria-label="Login Page">
+  <form id="loginForm" aria-describedby="loginMessage" novalidate>
+    <h2>Login</h2>
+    <label for="loginUsername">Username</label>
+    <input type="text" id="loginUsername" placeholder="Enter username" required aria-required="true" autocomplete="username" />
+    <label for="loginPassword">Password</label>
+    <input type="password" id="loginPassword" placeholder="Enter password" required aria-required="true" autocomplete="current-password" />
+    <button type="submit">Login</button>
+    <div id="loginMessage" role="alert" aria-live="assertive"></div>
+  </form>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" aria-label="Calibration Monitoring Dashboard">
+  <header>
+    AOI & SPI Calibration Monitoring System
+  </header>
+
+  <button id="menuToggleBtn" aria-label="Toggle navigation menu" aria-expanded="true">☰ Menu</button>
+
+  <main id="mainContent">
+    <nav id="sideNav" aria-label="Primary navigation">
+      <button id="tabAccount" role="tab" aria-selected="false" aria-controls="contentAccount">Account</button>
+      <button id="tabCalibration" role="tab" aria-selected="false" aria-controls="contentCalibration">Calibration Records</button>
+      <button id="tabMaintenance" role="tab" aria-selected="false" aria-controls="contentMaintenance">Maintenance</button>
+      <button id="tabHistory" role="tab" aria-selected="false" aria-controls="contentHistory">Machine History</button>
+
+      <button class="nav-btn logout-btn" id="logoutBtn" aria-label="Logout">Logout</button>
+    </nav>
+
+    <section id="contentAccount" class="content" role="tabpanel" aria-labelledby="tabAccount" style="display:none;">
+      <h2>Account Login Credentials</h2>
+      <p>You are logged in.</p>
+      <p><strong>User:</strong> <span id="loggedInUser"></span></p>
+    </section>
+
+    <section id="contentCalibration" class="content" role="tabpanel" aria-labelledby="tabCalibration" style="display:none;">
+      <button id="openAddModalBtn">+ Add Machine</button>
+
+      <h2>Calibration Records</h2>
+      <table id="recordsTable" aria-label="Calibration records table">
+        <thead>
+          <tr>
+            <th>Machine Type</th>
+            <th>Serial Number</th>
+            <th>Line</th>
+            <th>Plant</th>
+            <th>Account</th>
+            <th>Supplier</th>
+            <th>Calibration Date</th>
+            <th>Next Due</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Records will appear here -->
+        </tbody>
+      </table>
+    </section>
+
+    <section id="contentMaintenance" class="content" role="tabpanel" aria-labelledby="tabMaintenance" style="display:none;">
+      <div class="sub-tabs" role="tablist">
+        <button id="subTabAccounts" class="active" role="tab" aria-selected="true" aria-controls="accountsContent">Accounts</button>
+        <button id="subTabPlants" role="tab" aria-selected="false" aria-controls="plantsContent">Plants</button>
+      </div>
+
+      <div id="accountsContent" class="sub-tab-content active" role="tabpanel" aria-labelledby="subTabAccounts">
+        <h3>Manage Accounts</h3>
+        <input type="text" id="newAccountInput" placeholder="New Account name" aria-label="New Account name"/>
+        <button id="addAccountBtn">Add Account</button>
+
+        <table id="accountsTable" aria-label="Accounts list">
+          <thead>
+            <tr><th>Account Name</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <!-- Accounts listed here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="plantsContent" class="sub-tab-content" role="tabpanel" aria-labelledby="subTabPlants" style="display:none;">
+        <h3>Manage Plants</h3>
+        <input type="text" id="newPlantInput" placeholder="New Plant name" aria-label="New Plant name"/>
+        <button id="addPlantBtn">Add Plant</button>
+
+        <table id="plantsTable" aria-label="Plants list">
+          <thead>
+            <tr><th>Plant Name</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <!-- Plants listed here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="contentHistory" class="content" role="tabpanel" aria-labelledby="tabHistory" style="display:none;">
+      <h2>Machine History</h2>
+      <label for="historySerialInput">Enter Serial Number:</label>
+      <input type="text" id="historySerialInput" placeholder="e.g. SN12345" aria-label="Serial Number input" />
+      <button id="loadHistoryBtn">Load History</button>
+
+      <div id="machineHistoryDisplay">
+        <p>Enter a serial number above and click "Load History" to view machine history.</p>
+      </div>
+
+      <hr style="margin: 2rem 0; border-color: #ddd;" />
+
+      <h3>Log Repair or Part Change</h3>
+      <form id="repairForm" novalidate>
+        <label for="repairDate">Date of Repair / Part Change</label>
+        <input type="date" id="repairDate" required aria-required="true" />
+
+        <label for="repairDescription">Description</label>
+        <textarea id="repairDescription" rows="3" placeholder="Describe the repair or parts changed" required aria-required="true" style="width:100%; padding:0.5rem; border-radius:4px; border:1px solid #ccc;"></textarea>
+
+        <button type="submit" style="margin-top: 1rem;">Add Repair Record</button>
+      </form>
+
+      <div id="repairRecordsDisplay" style="margin-top: 1.5rem;">
+        <h3>Repair / Parts Change History</h3>
+        <p>No repair records found.</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content">
+      <button class="close-btn" aria-label="Close modal">&times;</button>
+      <form id="calibrationForm" novalidate>
+        <div class="modal-header" id="modalTitle">Add Machine</div>
+
+        <label for="machineType">Machine Type</label>
+        <select id="machineType" required aria-required="true">
+          <option value="">Select Machine Type</option>
+          <option value="AOI">AOI</option>
+          <option value="SPI">SPI</option>
+        </select>
+        <div class="error-message" aria-live="polite"></div>
+
+        <label for="serialNumber">Serial Number</label>
+        <input id="serialNumber" type="text" placeholder="e.g. SN12345" required aria-required="true" />
+        <div class="error-message" aria-live="polite"></div>
+
+        <label for="line">Line</label>
+        <input id="line" type="text" placeholder="Production line" required aria-required="true" />
+        <div class="error-message" aria-live="polite"></div>
+
+        <label for="plantSelect">Plant</label>
+        <select id="plantSelect" required aria-required="true">
+          <!-- Dynamically populated -->
+        </select>
+        <div class="error-message" aria-live="polite"></div>
+
+        <label for="accountSelect">Account</label>
+        <select id="accountSelect" required aria-required="true">
+          <!-- Dynamically populated -->
+        </select>
+        <div class="error-message" aria-live="polite"></div>
+
+        <label for="supplier">Supplier</label>
+        <input id="supplier" type="text" placeholder="Supplier name" />
+        <div class="error-message" aria-live="polite"></div>
+
+        <label for="calibrationDate">Calibration Date</label>
+        <input id="calibrationDate" type="date" required aria-required="true" />
+        <div class="error-message" aria-live="polite"></div>
+
+        <label for="nextCalibrationDue">Next Calibration Due</label>
+        <input id="nextCalibrationDue" type="date" required aria-required="true" />
+        <div class="error-message" aria-live="polite"></div>
+
+        <label for="status">Status</label>
+        <select id="status" required aria-required="true">
+          <option value="">Select Status</option>
+          <option value="Passed">Passed</option>
+          <option value="Failed">Failed</option>
+          <option value="Overdue">Overdue</option>
+        </select>
+        <div class="error-message" aria-live="polite"></div>
+
+        <input type="hidden" id="editIndex" />
+
+        <button type="submit">Save</button>
+        <button type="button" id="cancelBtn">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+<script>
+  // Elements
+  const loginPage = document.getElementById('loginPage');
+  const dashboard = document.getElementById('dashboard');
+
+  const tabAccount = document.getElementById('tabAccount');
+  const tabCalibration = document.getElementById('tabCalibration');
+  const tabMaintenance = document.getElementById('tabMaintenance');
+  const tabHistory = document.getElementById('tabHistory');
+
+  const contentAccount = document.getElementById('contentAccount');
+  const contentCalibration = document.getElementById('contentCalibration');
+  const contentMaintenance = document.getElementById('contentMaintenance');
+  const contentHistory = document.getElementById('contentHistory');
+
+  const subTabAccounts = document.getElementById('subTabAccounts');
+  const subTabPlants = document.getElementById('subTabPlants');
+
+  const accountsContent = document.getElementById('accountsContent');
+  const plantsContent = document.getElementById('plantsContent');
+
+  const sideNav = document.getElementById('sideNav');
+  const mainContent = document.getElementById('mainContent');
+  const menuToggleBtn = document.getElementById('menuToggleBtn');
+
+  // Calibration Records elements
+  const openAddModalBtn = document.getElementById('openAddModalBtn');
+  const modal = document.getElementById('modal');
+  const closeBtn = modal.querySelector('.close-btn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const form = document.getElementById('calibrationForm');
+
+  const machineType = document.getElementById('machineType');
+  const serialNumber = document.getElementById('serialNumber');
+  const line = document.getElementById('line');
+  const plantSelect = document.getElementById('plantSelect');
+  const accountSelect = document.getElementById('accountSelect');
+  const supplier = document.getElementById('supplier');
+  const calibrationDate = document.getElementById('calibrationDate');
+  const nextCalibrationDue = document.getElementById('nextCalibrationDue');
+  const status = document.getElementById('status');
+  const editIndexInput = document.getElementById('editIndex');
+  const modalTitle = document.getElementById('modalTitle');
+
+  const recordsTableBody = document.querySelector('#recordsTable tbody');
+  const accountsTableBody = document.querySelector('#accountsTable tbody');
+  const plantsTableBody = document.querySelector('#plantsTable tbody');
+
+  // Maintenance elements
+  const newAccountInput = document.getElementById('newAccountInput');
+  const addAccountBtn = document.getElementById('addAccountBtn');
+  const newPlantInput = document.getElementById('newPlantInput');
+  const addPlantBtn = document.getElementById('addPlantBtn');
+
+  // History elements
+  const historySerialInput = document.getElementById('historySerialInput');
+  const loadHistoryBtn = document.getElementById('loadHistoryBtn');
+  const machineHistoryDisplay = document.getElementById('machineHistoryDisplay');
+  const repairForm = document.getElementById('repairForm');
+  const repairDateInput = document.getElementById('repairDate');
+  const repairDescriptionInput = document.getElementById('repairDescription');
+  const repairRecordsDisplay = document.getElementById('repairRecordsDisplay');
+
+  // Account Login elements
+  const loginForm = document.getElementById('loginForm');
+  const loginUsername = document.getElementById('loginUsername');
+  const loginPassword = document.getElementById('loginPassword');
+  const loginMessage = document.getElementById('loginMessage');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const loggedInUserSpan = document.getElementById('loggedInUser');
+
+  // Storage keys
+  const STORAGE_KEY = 'calibration_records';
+  const STORAGE_ACCOUNTS_KEY = 'calibration_accounts';
+  const STORAGE_PLANTS_KEY = 'calibration_plants';
+  const STORAGE_REPAIR_KEY = 'calibration_repairs';
+  const STORAGE_USER_KEY = 'calibration_user';
+
+  // Data arrays
+  let records = [];
+  let accounts = [];
+  let plants = [];
+  let repairRecords = {}; // serialNumber => [records]
+  let user = null; // logged-in user
+
+  // --- Tab switching ---
+  function switchTab(selectedTab) {
+    [tabAccount, tabCalibration, tabMaintenance, tabHistory].forEach(tab => {
+      tab.classList.remove('active');
+      tab.setAttribute('aria-selected', 'false');
+    });
+    [contentAccount, contentCalibration, contentMaintenance, contentHistory].forEach(content => {
+      content.style.display = 'none';
+    });
+
+    selectedTab.classList.add('active');
+    selectedTab.setAttribute('aria-selected', 'true');
+
+    const targetId = selectedTab.getAttribute('aria-controls');
+    document.getElementById(targetId).style.display = 'block';
+
+    // Clear login message when switching tabs
+    if (selectedTab === tabAccount) {
+      loginMessage.textContent = '';
+      loggedInUserSpan.textContent = user ? user.username : '';
+    }
+  }
+
+  // Subtabs for maintenance
+  function switchSubTab(selectedSubTab) {
+    [subTabAccounts, subTabPlants].forEach(tab => {
+      tab.classList.remove('active');
+      tab.setAttribute('aria-selected', 'false');
+    });
+    [accountsContent, plantsContent].forEach(content => {
+      content.style.display = 'none';
+    });
+
+    selectedSubTab.classList.add('active');
+    selectedSubTab.setAttribute('aria-selected', 'true');
+
+    const targetId = selectedSubTab.getAttribute('aria-controls');
+    document.getElementById(targetId).style.display = 'block';
+  }
+
+  tabAccount.addEventListener('click', () => switchTab(tabAccount));
+  tabCalibration.addEventListener('click', () => switchTab(tabCalibration));
+  tabMaintenance.addEventListener('click', () => switchTab(tabMaintenance));
+  tabHistory.addEventListener('click', () => switchTab(tabHistory));
+
+  subTabAccounts.addEventListener('click', () => switchSubTab(subTabAccounts));
+  subTabPlants.addEventListener('click', () => switchSubTab(subTabPlants));
+
+  // --- Render functions ---
+  function renderRecords() {
+    recordsTableBody.innerHTML = '';
+    if(records.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 10;
+      td.style.textAlign = 'center';
+      td.textContent = 'No records found. Add a machine to get started.';
+      tr.appendChild(td);
+      recordsTableBody.appendChild(tr);
+      return;
+    }
+    records.forEach((rec, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${rec.machineType}</td>
+        <td><button class="small" style="background:none; color:#0052cc; border:none; padding:0; cursor:pointer; text-decoration:underline;" aria-label="View history for ${rec.serialNumber}">${rec.serialNumber}</button></td>
+        <td>${rec.line}</td>
+        <td>${rec.plant}</td>
+        <td>${rec.account}</td>
+        <td>${rec.supplier}</td>
+        <td>${rec.calibrationDate}</td>
+        <td>${rec.nextCalibrationDue}</td>
+        <td class="status-${rec.status.toLowerCase()}">${rec.status}</td>
+        <td>
+          <button class="small" aria-label="Edit record for ${rec.serialNumber}" onclick="editRecord(${index})">Edit</button>
+          <button class="small delete-btn" aria-label="Delete record for ${rec.serialNumber}" onclick="deleteRecord(${index})">Delete</button>
+        </td>
+      `;
+      // Add listener for serial number click to load history inline
+      tr.querySelector('td button').addEventListener('click', () => {
+        switchTab(tabHistory);
+        historySerialInput.value = rec.serialNumber;
+        loadHistory();
+      });
+      recordsTableBody.appendChild(tr);
+    });
+    populateSelectOptions();
+  }
+
+  function renderAccounts() {
+    accountsTableBody.innerHTML = '';
+    if(accounts.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 2;
+      td.style.textAlign = 'center';
+      td.textContent = 'No accounts found.';
+      tr.appendChild(td);
+      accountsTableBody.appendChild(tr);
+      return;
+    }
+    accounts.forEach((acc, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${acc}</td>
+        <td><button class="small delete-btn" aria-label="Delete account ${acc}" onclick="deleteAccount(${i})">Delete</button></td>
+      `;
+      accountsTableBody.appendChild(tr);
+    });
+    populateSelectOptions();
+  }
+
+  function renderPlants() {
+    plantsTableBody.innerHTML = '';
+    if(plants.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 2;
+      td.style.textAlign = 'center';
+      td.textContent = 'No plants found.';
+      tr.appendChild(td);
+      plantsTableBody.appendChild(tr);
+      return;
+    }
+    plants.forEach((plant, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${plant}</td>
+        <td><button class="small delete-btn" aria-label="Delete plant ${plant}" onclick="deletePlant(${i})">Delete</button></td>
+      `;
+      plantsTableBody.appendChild(tr);
+    });
+    populateSelectOptions();
+  }
+
+  // Populate Plant and Account selects in modal form
+  function populateSelectOptions() {
+    // Clear existing options
+    plantSelect.innerHTML = '';
+    accountSelect.innerHTML = '';
+
+    if(plants.length === 0) {
+      let opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No plants available';
+      plantSelect.appendChild(opt);
+    } else {
+      plants.forEach(plant => {
+        const opt = document.createElement('option');
+        opt.value = plant;
+        opt.textContent = plant;
+        plantSelect.appendChild(opt);
+      });
+    }
+    if(accounts.length === 0) {
+      let opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No accounts available';
+      accountSelect.appendChild(opt);
+    } else {
+      accounts.forEach(account => {
+        const opt = document.createElement('option');
+        opt.value = account;
+        opt.textContent = account;
+        accountSelect.appendChild(opt);
+      });
+    }
+  }
+
+  // --- Add / Delete for accounts/plants ---
+  addAccountBtn.addEventListener('click', () => {
+    const newAcc = newAccountInput.value.trim();
+    if(newAcc === '') {
+      alert('Account name cannot be empty');
+      return;
+    }
+    if(accounts.includes(newAcc)) {
+      alert('Account already exists');
+      return;
+    }
+    accounts.push(newAcc);
+    newAccountInput.value = '';
+    renderAccounts();
+    saveData();
+  });
+
+  addPlantBtn.addEventListener('click', () => {
+    const newPlant = newPlantInput.value.trim();
+    if(newPlant === '') {
+      alert('Plant name cannot be empty');
+      return;
+    }
+    if(plants.includes(newPlant)) {
+      alert('Plant already exists');
+      return;
+    }
+    plants.push(newPlant);
+    newPlantInput.value = '';
+    renderPlants();
+    saveData();
+  });
+
+  window.deleteAccount = function(index) {
+    if(confirm('Delete this account?')) {
+      accounts.splice(index, 1);
+      renderAccounts();
+      saveData();
+    }
+  };
+
+  window.deletePlant = function(index) {
+    if(confirm('Delete this plant?')) {
+      plants.splice(index, 1);
+      renderPlants();
+      saveData();
+    }
+  };
+
+  // --- Modal controls ---
+  function openModal() {
+    modal.style.display = 'block';
+    modal.setAttribute('aria-hidden', 'false');
+  }
+  function closeModal() {
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+    form.reset();
+    clearValidation();
+    editIndexInput.value = '';
+    modalTitle.textContent = 'Add Machine';
+  }
+
+  openAddModalBtn.addEventListener('click', () => {
+    modalTitle.textContent = 'Add Machine';
+    openModal();
+  });
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+
+  window.onclick = function(event) {
+    if(event.target === modal) closeModal();
+  };
+
+  // --- Validation Helpers ---
+  function clearValidation() {
+    [...form.elements].forEach(el => {
+      if(el.nextElementSibling && el.nextElementSibling.classList.contains('error-message')) {
+        el.nextElementSibling.textContent = '';
+      }
+      el.classList.remove('invalid-input');
+    });
+  }
+
+  function validateForm() {
+    clearValidation();
+    let valid = true;
+
+    if(form.machineType.value === '') {
+      showError(form.machineType, 'Please select a machine type');
+      valid = false;
+    }
+    if(form.serialNumber.value.trim() === '') {
+      showError(form.serialNumber, 'Serial number is required');
+      valid = false;
+    }
+    if(form.line.value.trim() === '') {
+      showError(form.line, 'Line is required');
+      valid = false;
+    }
+    if(form.plantSelect.value === '') {
+      showError(form.plantSelect, 'Please select a plant');
+      valid = false;
+    }
+    if(form.accountSelect.value === '') {
+      showError(form.accountSelect, 'Please select an account');
+      valid = false;
+    }
+    if(form.calibrationDate.value === '') {
+      showError(form.calibrationDate, 'Calibration date is required');
+      valid = false;
+    }
+    if(form.nextCalibrationDue.value === '') {
+      showError(form.nextCalibrationDue, 'Next calibration due date is required');
+      valid = false;
+    }
+    if(form.status.value === '') {
+      showError(form.status, 'Please select a calibration status');
+      valid = false;
+    }
+    return valid;
+  }
+
+  function showError(input, message) {
+    input.classList.add('invalid-input');
+    const errorDiv = input.nextElementSibling;
+    if(errorDiv && errorDiv.classList.contains('error-message')) {
+      errorDiv.textContent = message;
+    }
+  }
+
+  // --- Form submit ---
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if(!validateForm()) return;
+
+    const newRecord = {
+      machineType: form.machineType.value,
+      serialNumber: form.serialNumber.value.trim(),
+      line: form.line.value.trim(),
+      plant: form.plantSelect.value,
+      account: form.accountSelect.value,
+      supplier: form.supplier.value.trim(),
+      calibrationDate: form.calibrationDate.value,
+      nextCalibrationDue: form.nextCalibrationDue.value,
+      status: form.status.value,
+    };
+
+    const editIndex = editIndexInput.value;
+    if(editIndex === '') {
+      records.push(newRecord);
+    } else {
+      records[editIndex] = newRecord;
+    }
+    saveData();
+    renderRecords();
+    closeModal();
+  });
+
+  // --- Edit / Delete records ---
+  window.editRecord = function(index) {
+    const rec = records[index];
+    form.machineType.value = rec.machineType;
+    form.serialNumber.value = rec.serialNumber;
+    form.line.value = rec.line;
+    form.plantSelect.value = rec.plant;
+    form.accountSelect.value = rec.account;
+    form.supplier.value = rec.supplier;
+    form.calibrationDate.value = rec.calibrationDate;
+    form.nextCalibrationDue.value = rec.nextCalibrationDue;
+    form.status.value = rec.status;
+    editIndexInput.value = index;
+    modalTitle.textContent = 'Edit Machine';
+    clearValidation();
+    openModal();
+  };
+
+  window.deleteRecord = function(index) {
+    if(confirm('Delete this record?')) {
+      records.splice(index, 1);
+      saveData();
+      renderRecords();
+    }
+  };
+
+  // --- Toggle left nav ---
+  menuToggleBtn.addEventListener('click', () => {
+    if(sideNav.classList.contains('hidden')) {
+      sideNav.classList.remove('hidden');
+      mainContent.classList.remove('nav-hidden');
+      menuToggleBtn.setAttribute('aria-expanded', 'true');
+    } else {
+      sideNav.classList.add('hidden');
+      mainContent.classList.add('nav-hidden');
+      menuToggleBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // --- Repair / Change parts data ---
+
+  // Load repair records from localStorage
+  function loadRepairData() {
+    repairRecords = JSON.parse(localStorage.getItem(STORAGE_REPAIR_KEY)) || {};
+  }
+
+  // Save repair records to localStorage
+  function saveRepairData() {
+    localStorage.setItem(STORAGE_REPAIR_KEY, JSON.stringify(repairRecords));
+  }
+
+  // Escape HTML helper to avoid injection
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Display repair records for serial number
+  function displayRepairRecords(serial) {
+    if(!serial || !repairRecords[serial] || repairRecords[serial].length === 0) {
+      repairRecordsDisplay.innerHTML = '<p>No repair records found.</p>';
+      return;
+    }
+    let html = `<table aria-label="Repair records for ${escapeHtml(serial)}" style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="border-bottom:1px solid #ddd; padding:0.5rem;">Date</th>
+          <th style="border-bottom:1px solid #ddd; padding:0.5rem;">Description</th>
+        </tr>
+      </thead><tbody>`;
+    repairRecords[serial].forEach(record => {
+      html += `<tr>
+        <td style="border-bottom:1px solid #ddd; padding:0.5rem;">${escapeHtml(record.date)}</td>
+        <td style="border-bottom:1px solid #ddd; padding:0.5rem;">${escapeHtml(record.description)}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    repairRecordsDisplay.innerHTML = html;
+  }
+
+  // Add repair record
+  repairForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const serial = historySerialInput.value.trim();
+    if(serial === '') {
+      alert('Please enter a serial number above to add repair record');
+      return;
+    }
+    const date = repairDateInput.value;
+    const desc = repairDescriptionInput.value.trim();
+    if(date === '' || desc === '') {
+      alert('Please enter both date and description for repair');
+      return;
+    }
+    if(!repairRecords[serial]) {
+      repairRecords[serial] = [];
+    }
+    repairRecords[serial].push({date, description: desc});
+    saveRepairData();
+    displayRepairRecords(serial);
+    repairForm.reset();
+  });
+
+  // --- Load machine history ---
+  function loadHistory() {
+    const serial = historySerialInput.value.trim();
+    if(serial === '') {
+      machineHistoryDisplay.innerHTML = '<p>Please enter a serial number.</p>';
+      repairRecordsDisplay.innerHTML = '<p>No repair records found.</p>';
+      return;
+    }
+
+    // Find calibration records for serial
+    const matchingRecords = records.filter(r => r.serialNumber === serial);
+    if(matchingRecords.length === 0) {
+      machineHistoryDisplay.innerHTML = `<p>No calibration records found for serial number <strong>${escapeHtml(serial)}</strong>.</p>`;
+      repairRecordsDisplay.innerHTML = '<p>No repair records found.</p>';
+    } else {
+      let html = `<table aria-label="Calibration history for ${escapeHtml(serial)}" style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="border-bottom:1px solid #ddd; padding:0.5rem;">Machine Type</th>
+          <th style="border-bottom:1px solid #ddd; padding:0.5rem;">Line</th>
+          <th style="border-bottom:1px solid #ddd; padding:0.5rem;">Plant</th>
+          <th style="border-bottom:1px solid #ddd; padding:0.5rem;">Account</th>
+          <th style="border-bottom:1px solid #ddd; padding:0.5rem;">Supplier</th>
+          <th style="border-bottom:1px solid #ddd; padding:0.5rem;">Calibration Date</th>
+          <th style="border-bottom:1px solid #ddd; padding:0.5rem;">Next Due</th>
+          <th style="border-bottom:1px solid #ddd; padding:0.5rem;">Status</th>
+        </tr>
+      </thead><tbody>`;
+
+      matchingRecords.forEach(r => {
+        html += `<tr>
+          <td style="border-bottom:1px solid #ddd; padding:0.5rem;">${escapeHtml(r.machineType)}</td>
+          <td style="border-bottom:1px solid #ddd; padding:0.5rem;">${escapeHtml(r.line)}</td>
+          <td style="border-bottom:1px solid #ddd; padding:0.5rem;">${escapeHtml(r.plant)}</td>
+          <td style="border-bottom:1px solid #ddd; padding:0.5rem;">${escapeHtml(r.account)}</td>
+          <td style="border-bottom:1px solid #ddd; padding:0.5rem;">${escapeHtml(r.supplier)}</td>
+          <td style="border-bottom:1px solid #ddd; padding:0.5rem;">${escapeHtml(r.calibrationDate)}</td>
+          <td style="border-bottom:1px solid #ddd; padding:0.5rem;">${escapeHtml(r.nextCalibrationDue)}</td>
+          <td style="border-bottom:1px solid #ddd; padding:0.5rem;">${escapeHtml(r.status)}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      machineHistoryDisplay.innerHTML = html;
+      displayRepairRecords(serial);
+    }
+  }
+
+  loadHistoryBtn.addEventListener('click', loadHistory);
+
+  // --- Save / Load all data ---
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+    localStorage.setItem(STORAGE_PLANTS_KEY, JSON.stringify(plants));
+  }
+
+  function loadData() {
+    records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    accounts = JSON.parse(localStorage.getItem(STORAGE_ACCOUNTS_KEY)) || [];
+    plants = JSON.parse(localStorage.getItem(STORAGE_PLANTS_KEY)) || [];
+  }
+
+  // --- User login management ---
+  function saveUser() {
+    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
+  }
+  function loadUser() {
+    user = JSON.parse(localStorage.getItem(STORAGE_USER_KEY));
+    if(user && user.loggedIn) {
+      loginPage.style.display = 'none';
+      dashboard.style.display = 'flex';
+      loggedInUserSpan.textContent = user.username;
+      switchTab(tabCalibration);
+    } else {
+      loginPage.style.display = 'flex';
+      dashboard.style.display = 'none';
+    }
+  }
+
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const usernameVal = loginUsername.value.trim();
+    const passwordVal = loginPassword.value.trim();
+    if(usernameVal === '' || passwordVal === '') {
+      loginMessage.textContent = 'Please enter username and password.';
+      return;
+    }
+    // Accept any username/password for demo, but you can add real auth here
+    user = {username: usernameVal, loggedIn: true};
+    saveUser();
+    loginMessage.textContent = '';
+    loadUser();
+    loginForm.reset();
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    user = {loggedIn: false};
+    saveUser();
+    loadUser();
+  });
+
+  // --- Initialization ---
+  function init() {
+    loadData();
+    loadRepairData();
+    loadUser();
+    renderRecords();
+    renderAccounts();
+    renderPlants();
+    populateSelectOptions();
+  }
+  init();
+
+</script>
+
+</body>
+</html>
